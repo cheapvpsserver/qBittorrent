@@ -172,52 +172,7 @@
       background-color: rgba(70, 131, 244, 0.1);
     }
 
-    /* 主banner视频样式 */
-    .hero-screenshot {
-      width: 1000px;
-      max-width: 100%;
-      height: 600px;
-      margin: 0 auto;
-      border-radius: 12px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-      overflow: hidden;
-      background-color: #f0f0f0;
-    }
-    
-    /* 视频容器相对定位 */
-    .video-container {
-      position: relative;
-      cursor: pointer;
-    }
-    
-    /* 视频覆盖层 */
-    .video-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: opacity 0.3s ease;
-      z-index: 10;
-    }
-    
-    /* 覆盖层文字样式 */
-    .overlay-text {
-      color: white;
-      font-size: 36px;
-      font-weight: 600;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    }
-    
-    /* 隐藏覆盖层 */
-    .video-overlay.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
+
 
     /* 下载模态框样式 */
     .modal {
@@ -639,7 +594,7 @@
   </style>
   <!-- 在现有script标签前添加 -->
 
-</head>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5020583079217470"crossorigin="anonymous"></script> </head>
 <body>
   <!-- 导航栏 -->
   <nav>
@@ -681,11 +636,7 @@
         <i class="fas fa-check-circle" style="color: #4CAF50; margin-right: 8px;"></i>
         <span style="color: #666;">当前工具是最新版本</span>
       </div>
-      <!-- 主banner视频 - Bilibili嵌入 -->
-      <div class="hero-screenshot video-container">
-        <!-- Bilibili播放器 -->
-        <iframe id="bilibili-player" src="//player.bilibili.com/player.html?isOutside=true&aid=116001513412791&bvid=BV1xSFKzVEup&cid=35778005208&p=1&autoplay=0&loop=0" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="width: 100%; height: 100%; min-height: 300px;"></iframe>
-      </div>
+
     </header>
 
     <!-- 特性区域 -->
@@ -910,8 +861,7 @@
       }
     });
     
-    // 视频播放器引用
-    const bilibiliPlayer = document.getElementById('bilibili-player');
+
     
     // 下载模态框逻辑
     const downloadModal = document.getElementById('download-modal');
@@ -958,12 +908,11 @@
       return featureData[slug];
     }
     
-    // 获取所有下载按钮和选项容器
-    const downloadButtons = document.querySelectorAll('.download-buttons .btn');
-    const downloadOptionsContainer = document.getElementById('download-options');
-    
     // 动态生成下载选项
     function generateDownloadOptions(feature) {
+      const downloadOptionsContainer = document.getElementById('download-options');
+      if (!downloadOptionsContainer) return;
+      
       // 清空容器
       downloadOptionsContainer.innerHTML = '';
       
@@ -974,13 +923,6 @@
       for (const [name, url] of Object.entries(links)) {
         const optionItem = document.createElement('div');
         optionItem.className = 'option-item';
-        
-        // 根据平台获取显示名称
-        const platformName = {
-          'windows-64': 'Windows 64位',
-          'windows-32': 'Windows 32位',
-          'windows-portable': 'Windows 64位便携版'
-        }[feature.platform];
         
         // 使用原始链接，不添加平台信息
         optionItem.innerHTML = `
@@ -1017,6 +959,7 @@
         const button = document.querySelector(`.download-buttons .btn[data-platform="${feature.platform}"]`);
         if (button) {
           // 1. 先将所有按钮恢复为btn-outline样式
+          const downloadButtons = document.querySelectorAll('.download-buttons .btn');
           downloadButtons.forEach(btn => {
             btn.classList.remove('btn-blue');
             btn.classList.add('btn-outline');
@@ -1043,11 +986,13 @@
     // 页面加载时初始化
     window.addEventListener('DOMContentLoaded', initPage);
     
-    // 为每个下载按钮添加点击事件
-    downloadButtons.forEach(button => {
-      button.addEventListener('click', function(e) {
+    // 使用事件委托为所有下载按钮添加点击事件
+    document.addEventListener('click', function(e) {
+      // 检查点击的元素是否是下载按钮
+      const downloadButton = e.target.closest('.download-buttons .btn');
+      if (downloadButton) {
         // 检查是否是"所有工具"按钮，如果是则不阻止默认行为
-        if (this.getAttribute('href') === 'https://all.calipertools.com') {
+        if (downloadButton.getAttribute('href') === 'https://all.calipertools.com') {
           return; // 直接返回，不阻止默认行为
         }
         
@@ -1055,27 +1000,24 @@
         e.preventDefault();
         
         // 获取当前平台
-        const platform = this.getAttribute('data-platform');
+        const platform = downloadButton.getAttribute('data-platform');
         
         // 查找对应的功能数据
         const slug = `qBittorrent-${platform}`;
         const feature = featureData[slug];
         
         if (feature) {
-          // 更新页面URL但不刷新页面
-          const newUrl = `/${slug}`;
-          history.pushState({ slug }, feature.title, newUrl);
-          
           // 更新页面标题和描述
           updatePageInfo(feature);
           
           // 高亮对应的下载按钮
+          const downloadButtons = document.querySelectorAll('.download-buttons .btn');
           downloadButtons.forEach(btn => {
             btn.classList.remove('btn-blue');
             btn.classList.add('btn-outline');
           });
-          this.classList.remove('btn-outline');
-          this.classList.add('btn-blue');
+          downloadButton.classList.remove('btn-outline');
+          downloadButton.classList.add('btn-blue');
           
           // 计算链接数量
           const linkCount = Object.keys(feature.links).length;
@@ -1083,16 +1025,6 @@
           if (linkCount === 1) {
             // 只有一个链接，在新窗口打开
             const firstLink = Object.values(feature.links)[0];
-            
-            // 根据平台获取显示名称
-            const platformName = {
-              'windows-64': 'Windows 64位',
-              'windows-32': 'Windows 32位',
-              'windows-portable': 'Windows 64位便携版'
-            }[platform];
-            
-            // 使用原始链接，不添加平台信息
-            // 在新窗口打开链接
             window.open(firstLink, '_blank', 'noopener,noreferrer');
           } else {
             // 多个链接，生成选项并显示模态框
@@ -1100,7 +1032,7 @@
             downloadModal.style.display = 'block';
           }
         }
-      });
+      }
     });
     
     // 添加popstate事件监听器，处理浏览器前进后退
@@ -1111,11 +1043,15 @@
     
     // 关闭模态框
     function closeDownloadModal() {
-      downloadModal.style.display = 'none';
+      if (downloadModal) {
+        downloadModal.style.display = 'none';
+      }
     }
     
     // 点击关闭按钮
-    closeModal.addEventListener('click', closeDownloadModal);
+    if (closeModal) {
+      closeModal.addEventListener('click', closeDownloadModal);
+    }
     
     // 点击模态框外部
     window.addEventListener('click', function(e) {
